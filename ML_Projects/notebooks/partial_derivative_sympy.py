@@ -1,6 +1,9 @@
 import sympy as sp
 
-x_val, y_val = 3, 4
+def f(x, y):
+    return x**2 + y**2  # Replace this with any function
+
+x_val, y_val = 3.0, 4.0
 x_1, y_1 = sp.symbols("x y")
 
 # define a function
