@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d as Axes3D
+import torch
 
 
 # Define the function to be minimized (a simple quadratic function)
@@ -8,36 +9,32 @@ def f(x, y):
     return x**2 + y**2
 
 
-# Define the partial derivatives of the function with respect to x and y
-# ∂f/∂x=2x
-def df_dx(x, y):
-    return 2 * x
-
-
-def df_dy(x, y):
-    return 2 * y
-
-
 # Define the gradient descent algorithm (∇f)
-def gradient_descent(start_x, start_y, learning_rate, num_iteration):
+def gradient_descent_with_torch(start_x, start_y, learning_rate, num_iteration):
     # Init params
-    x = start_x
-    y = start_y
+    x = torch.tensor(start_x, dtype=torch.float32, requires_grad=True)
+    y = torch.tensor(start_y, dtype=torch.float32, requires_grad=True)
     history = []
 
     # Preform the gradient descent iterations
     for i in range(num_iteration):
-        # calculate gradient
-        grad_x = df_dx(x, y)
-        grad_y = df_dy(x, y)
+        # Compute the function value
+        z = f(x, y)
 
-        # Update parameters
-        x = x - learning_rate * grad_x
-        y = y - learning_rate * grad_y
+        # Backpropagation to calculate gradients
+        z.backward()
 
-        history.append((x, y, f(x, y)))
+        history.append((x.detach().item(), y.detach().item(), z.detach().item()))
+        # Update parameters manually using gradients
+        with torch.no_grad():
+            x -= learning_rate * x.grad
+            y -= learning_rate * y.grad
 
-    return x, y, f(x, y), history
+            # Clear gradients for the next iteration
+            x.grad.zero_()
+            y.grad.zero_()
+
+    return x.item(), y.item(), z.item(), history
 
 
 # start plotting the function
@@ -52,7 +49,7 @@ Z = f(X, Y)
 start_x, start_y = 8, 8
 learning_rate = 0.1
 num_iterration = 20
-x_opt, y_opt, f_opt, history = gradient_descent(
+x_opt, y_opt, f_opt, history = gradient_descent_with_torch(
     start_x, start_y, learning_rate, num_iterration
 )
 
